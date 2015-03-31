@@ -1,3 +1,6 @@
+// phone-number-input
+// v0.0.2
+
 (function() {
 
 	if(!window.litl) window.litl = angular.module('litl', []);
@@ -45,7 +48,7 @@
 				};
 
 				scope.keydown = function(evt, idx) {
-					var key = event.keyCode || event.charCode;
+					var key = evt.keyCode || evt.charCode;
 					var del = ( key == 8 || key == 46 );
 					var str = String.fromCharCode(key);
 					var isNum = (/\d/.test(str));
