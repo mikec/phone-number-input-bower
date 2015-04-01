@@ -9,7 +9,7 @@
 
 		var numDigits = 10;
 
-		var tmpl = 
+		var tmpl =
 			'<div class="phone-number-input">' +
 				'<span class="paren open">(</span>' +
 				getInputStr(0) + getInputStr(1) + getInputStr(2) +
@@ -37,35 +37,64 @@
 				setAllPlaceholders();
 
 				scope.focus = function(evt, idx) {
+					var inp = inputs[idx];
+					if(!inp.hasPlaceholder) {
+						inp.storedValue = getValue(idx);
+					}
 					clearPlaceholder(idx);
 				};
 
 				scope.blur = function(evt, idx) {
 					var v = getValue(idx);
 					if(angular.isUndefined(v) || v === '' || v === ' ') {
-						setPlaceholder(idx);
+						var sv = inputs[idx].storedValue;
+						if(!sv) {
+							setPlaceholder(idx);
+						} else {
+							setValue(idx, sv);
+						}
 					}
 				};
 
 				scope.keydown = function(evt, idx) {
 					var key = evt.keyCode || evt.charCode;
 					var del = ( key == 8 || key == 46 );
+					var leftOrDown = ( key == 37 || key == 40 );
+					var rightOrUp = ( key == 39 || key == 38 );
 					var str = String.fromCharCode(key);
 					var isNum = (/\d/.test(str));
+					var focusPrev, focusNext, allowLoseFocus;
 
 					if(isNum) {
 						clearPlaceholder(idx, str);
-						var nxtIdx = idx + 1;
-						if(nxtIdx < 10) {
-							inputs[nxtIdx][0].focus();
-						}
+						focusNext = true;
+						allowLoseFocus = true;
 					} else if (del) {
-						setPlaceholder(idx);
+						inputs[idx].storedValue = undefined;
+						if(idx > 0) {
+							setPlaceholder(idx - 1);
+						}
+						focusPrev = true;
+					} else if (leftOrDown) {
+						focusPrev = true;
+					} else if (rightOrUp) {
+						focusNext = true;
+					}
+
+					if(focusPrev) {
 						var prevIdx = idx - 1;
 						if(prevIdx >= 0) {
 							inputs[prevIdx][0].focus();
 						}
+					} else if (focusNext) {
+						var nxtIdx = idx + 1;
+						if(nxtIdx < 10) {
+							inputs[nxtIdx][0].focus();
+						} else if (allowLoseFocus) {
+							inputs[idx][0].blur();
+						}
 					}
+
 					evt.preventDefault();
 				};
 
@@ -79,6 +108,7 @@
 					var n = index + 1;
 					scope['d' + n] = '0';
 					var inp = inputs[index];
+					inp.storedValue = undefined;
 					inp.hasPlaceholder = true;
 					inp.addClass('placeholder');
 				}
@@ -109,50 +139,6 @@
 
 			}
 		};
-
-		/*function getCaretPosition(input) {
-			if (!input) return 0;
-			if (input.selectionStart !== undefined) {
-				return input.selectionStart;
-			} else if (document.selection) {
-				input.focus();
-				var selection = document.selection.createRange();
-				selection.moveStart('character', input.value ? -input.value.length : 0);
-				return selection.text.length;
-			}
-			return 0;
-		}
-
-	    function setCaretPosition(input, pos){
-	        if (!input) return 0;
-	        if (input.offsetWidth === 0 || input.offsetHeight === 0) {
-	            return; // Input's hidden
-	        }
-	        if (input.setSelectionRange) {
-	            input.focus();
-	            input.setSelectionRange(pos, pos);
-	        }
-	        else if (input.createTextRange) {
-	            var range = input.createTextRange();
-	            range.collapse(true);
-	            range.moveEnd('character', pos);
-	            range.moveStart('character', pos);
-	            range.select();
-	        }
-	    }
-
-	    return {
-	        require: 'ngModel',
-	        link: function(scope, elem, attrs, ctrl) {
-	        	ctrl.$parsers.push(function(val) {
-	        		var append = ' 867 - 5309';
-	        		var newVal = val.replace(append, '') + append;
-	        		ctrl.$viewValue = newVal;
-	        		elem.val(newVal);
-	        		return newVal;
-	        	});
-	        }
-	    };*/
 
 	}]);
 
