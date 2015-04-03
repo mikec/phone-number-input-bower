@@ -1,6 +1,6 @@
 /**
  * phone-number-input
- * v0.1.0
+ * v0.1.1
  *
  * captures input of US based 10-digit phone numbers
  **/
@@ -53,6 +53,22 @@
 							}
 						}
 					}
+				};
+
+				ngModelCtrl.$validators.phoneNumber = function(modelValue) {
+					var mob = /^[1-9]{1}[0-9]{9}$/;
+    				return mob.test(modelValue);
+				};
+
+				ngModelCtrl.$isEmpty = function(value) {
+					if(value) {
+						for(var i=0; i < value.length; i++) {
+							if(!angular.isUndefined(getModelValueForIndex(i))) {
+								return false;
+							}
+						}
+					}
+					return true;
 				};
 
 				ngModelCtrl.$parsers.push(viewValueParser);
@@ -156,17 +172,26 @@
 					var v = '';
 					if(viewValue && viewValue.length > 0) {
 						for(var i=0; i < viewValue.length; i++) {
-							var inpVal = viewValue[i];
-							if(!inpVal.hasPlaceholder) {
-								if((parseInt(inpVal.displayValue) >= 0)) {
-									v += inpVal.displayValue;
-								} else if ((parseInt(inpVal.storedValue) >= 0)) {
-									v += inpVal.storedValue;
-								}
+							var val = getModelValueForIndex(i);
+							if(!angular.isUndefined(val)) {
+								v += val;
 							}
 						}
 					}
 					return v;
+				}
+
+				function getModelValueForIndex(index) {
+					var val;
+					var inpVal = ngModelCtrl.$viewValue[index];
+					if(!inpVal.hasPlaceholder) {
+						if((parseInt(inpVal.displayValue) >= 0)) {
+							val = inpVal.displayValue;
+						} else if ((parseInt(inpVal.storedValue) >= 0)) {
+							val = inpVal.storedValue;
+						}
+					}
+					return val;
 				}
 
 				function setPlaceholder(index) {
